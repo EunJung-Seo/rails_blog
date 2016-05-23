@@ -84,4 +84,17 @@ describe PostsController do
       expect(response.content_type).to eq('application/json')
     end
   end
+
+  describe '#destroy' do
+    let!(:post) { create(:post) }
+    it 'returns 200' do
+      delete :destroy, id: post.id
+      expect(response.status).to eq 302
+    end
+
+    it 'removes the post' do
+      delete :destroy, id: post.id, foramt: :json
+      expect(Post.count).to eq 0
+    end
+  end
 end
