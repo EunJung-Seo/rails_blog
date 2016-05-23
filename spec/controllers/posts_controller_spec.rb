@@ -53,4 +53,22 @@ describe PostsController do
       end
     end
   end
+
+  describe '#create' do
+    new_post = {
+      title: 'default title',
+      name: 'test',
+      content: 'new_content'
+    }
+
+    it 'returns 200' do
+      post :create, new_post
+      expect(response.status).to eq 200
+    end
+
+    # it 'returns json format' do
+    #   post :create, new_post, format: :json
+    #   expect(response.content_type).to eq('application/json')
+    # end
+  end
 end
