@@ -71,4 +71,17 @@ describe PostsController do
     #   expect(response.content_type).to eq('application/json')
     # end
   end
+
+  describe '#update' do
+    let!(:post) { create(:post) }
+    it 'returns 302' do
+      put :update, id: post.id
+      expect(response.status).to eq 302
+    end
+
+    it 'returns json format' do
+      put :update, id: post.id, format: :json
+      expect(response.content_type).to eq('application/json')
+    end
+  end
 end
