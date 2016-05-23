@@ -4,7 +4,7 @@ require 'rails_helper'
 
 describe PostsController do
   describe '#index' do
-    let!(:post) { create(:post) }
+    let!(:post1) { create(:post) }
     it 'returns 200' do
       get :index
       expect(response.status).to eq 200
@@ -16,9 +16,10 @@ describe PostsController do
     end
 
     it 'returns a post' do
+      let!(:post2) { create(:post) }
       get :index, format: :json
       json = JSON.parse(response.body)
-      expect(json.length).to eq 1
+      expect(json.length).to eq 2
     end
   end
 end
