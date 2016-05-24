@@ -6,4 +6,8 @@ FactoryGirl.define do
     content 'content'
     name 'user1'
   end
+
+  factory :invalid_post, parent: :post do
+    title nil
+  end
 end
