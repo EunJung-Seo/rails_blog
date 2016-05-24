@@ -464,15 +464,61 @@ describe PostsController do
   end
 
   describe '#destroy' do
-    let!(:post) { create(:post) }
-    it 'redirects to index' do
-      delete :destroy, id: post.id
-      expect(response).to redirect_to(posts_url)
-    end
+    describe 'JSON' do
+      context 'with valid id' do
+        let!(:post) { create(:post) }
+        subject { delete :destroy, id: post.id, format: :json }
+        it 'returns 204' do
+          subject
+          expect(response.status).to eq 204
+        end
 
-    it 'removes the post' do
-      delete :destroy, id: post.id, format: :json
-      expect(Post.count).to eq 0
+        it 'removes the post' do
+          subject
+          expect(Post.find_by_id(post.id)).to eq nil
+        end
+      end
+
+      context 'with invalid id' do
+        subject { delete :destroy, id: 0, format: :json }
+        it 'returns 422' do
+          subject
+          expect(response.status).to eq 422
+        end
+
+        it 'returns error message' do
+          subject
+          expect(JSON.parse(response.body)['error']).to eq 'Post not found'
+        end
+      end
+    end
+    describe 'html' do
+      context 'with valid id' do
+        let!(:post) { create(:post) }
+        subject { delete :destroy, id: post.id }
+        it 'returns 302' do
+          subject
+          expect(response.status).to eq 302
+        end
+
+        it 'redirects to index' do
+          subject
+          expect(response).to redirect_to(posts_url)
+        end
+
+        it 'removes the post' do
+          subject
+          expect(Post.find_by_id(post.id)).to eq nil
+        end
+      end
+
+      context 'with invalid id' do
+        subject { delete :destroy, id: 0 }
+        it 'redirects to index' do
+          subject
+          expect(response).to redirect_to(posts_url)
+        end
+      end
     end
   end
 end
