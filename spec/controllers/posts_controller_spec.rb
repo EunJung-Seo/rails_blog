@@ -78,23 +78,42 @@ describe PostsController do
   end
 
   describe '#update' do
-    let!(:post) { create(:post) }
-    it 'returns 302' do
-      put :update, id: post.id
-      expect(response.status).to eq 302
+    context 'with valid attributes' do
+      let!(:post) { create(:post) }
+      it 'changes post\'s attributes' do
+        put :update, id: post.id, post: attributes_for(:post, title: 'new title')
+        post.reload
+        expect(post.title).to eq 'new title'
+      end
+
+      it 'redirects to the updated post' do
+       put :update, id: post.id, post: attributes_for(:post, title: 'new title')
+       post.reload
+       expect(response).to redirect_to(post_path(post.id))
+      end
     end
 
-    it 'returns json format' do
-      put :update, id: post.id, format: :json
-      expect(response.content_type).to eq('application/json')
+    context 'with invalid attributes' do
+      let!(:post) { create(:post) }
+      it 'does not change post\'s attributes' do
+        put :update, id: post.id, post: attributes_for(:post, title: 'new title', name: nil)
+        post.reload
+        expect(post.title).to eq 'title'
+      end
+
+      it 'renders edit template' do
+        put :update, id: post.id, post: attributes_for(:post, title: 'new title', name: nil)
+        post.reload
+        expect(response).to render_template('edit')
+      end
     end
   end
 
   describe '#destroy' do
     let!(:post) { create(:post) }
-    it 'returns 302' do
+    it 'redirects to index' do
       delete :destroy, id: post.id
-      expect(response.status).to eq 302
+      expect(response).to redirect_to(posts_url)
     end
 
     it 'removes the post' do
