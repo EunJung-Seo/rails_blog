@@ -50,9 +50,9 @@ describe PostsController do
 
       context 'with invalid id' do
         subject { get :show, id: -10, format: :json }
-        it 'returns 404' do
+        it 'returns 422' do
           subject
-          expect(response.status).to eq 404
+          expect(response.status).to eq 422
         end
 
         it 'returns error message' do
@@ -192,11 +192,6 @@ describe PostsController do
 
     context 'with invalid name attribute' do
       subject { post :create, post: attributes_for(:invalid_post_name) }
-      it 'returns 200' do
-        subject
-        expect(response.status).to eq 200
-      end
-
       it 'renders new template' do
         subject
         expect(response).to render_template('new')
@@ -205,11 +200,6 @@ describe PostsController do
 
     context 'with invalid title attribute' do
       subject { post :create, post: attributes_for(:invalid_post_title) }
-      it 'returns 200' do
-        subject
-        expect(response.status).to eq 200
-      end
-
       it 'renders new template' do
         subject
         expect(response).to render_template('new')
@@ -218,11 +208,6 @@ describe PostsController do
 
     context 'when title is short than 5 characters' do
       subject { post :create, post: attributes_for(:short_post_title) }
-      it 'returns 200' do
-        subject
-        expect(response.status).to eq 200
-      end
-
       it 'renders new template' do
         subject
         expect(response).to render_template('new')
@@ -231,33 +216,249 @@ describe PostsController do
   end
 
   describe '#update' do
-    context 'with valid attributes' do
+    describe 'JSON' do
       let!(:post) { create(:post) }
-      it 'changes post\'s attributes' do
-        put :update, id: post.id, post: attributes_for(:post, title: 'new title')
-        post.reload
-        expect(post.title).to eq 'new title'
+      context 'with valid title attribute' do
+        subject do
+          put :update,
+          id: post.id,
+          post: attributes_for(:post, title: 'new title'),
+          format: :json
+        end
+
+        it 'returns 204' do
+          subject
+          expect(response.status).to eq 204
+        end
+        it 'changes post\'s title' do
+          subject
+          expect(post.reload.title).to eq 'new title'
+        end
       end
 
-      it 'redirects to the updated post' do
-       put :update, id: post.id, post: attributes_for(:post, title: 'new title')
-       post.reload
-       expect(response).to redirect_to(post_path(post.id))
+      context 'with valid name attribute' do
+        subject do
+          put :update,
+          id: post.id,
+          post: attributes_for(:post, name: 'new user'),
+          format: :json
+        end
+
+        it 'returns 204' do
+          subject
+          expect(response.status).to eq 204
+        end
+        it 'changes post\'s name' do
+          subject
+          expect(post.reload.name).to eq 'new user'
+        end
+      end
+
+      context 'with valid content attribute' do
+        subject do
+          put :update,
+          id: post.id,
+          post: attributes_for(:post, content: 'new content'),
+          format: :json
+        end
+
+        it 'returns 204' do
+          subject
+          expect(response.status).to eq 204
+        end
+        it 'changes post\'s content' do
+          subject
+          expect(post.reload.content).to eq 'new content'
+        end
+      end
+
+      context 'with invalid name attribute' do
+        subject do
+          put :update,
+          id: post.id,
+          post: attributes_for(:invalid_post_name),
+          format: :json
+        end
+        it 'returns 422' do
+          subject
+          expect(response.status).to eq 422
+        end
+        it 'returns a error message' do
+          subject
+          expect(JSON.parse(response.body)['name']).not_to be_empty
+        end
+      end
+
+      context 'with invalid title attribute' do
+        subject do
+          put :update,
+          id: post.id,
+          post: attributes_for(:invalid_post_title),
+          format: :json
+        end
+        it 'returns 422' do
+          subject
+          expect(response.status).to eq 422
+        end
+        it 'returns a error message' do
+          subject
+          expect(JSON.parse(response.body)['title']).not_to be_empty
+        end
+      end
+
+      context 'when title is short than 5 characters' do
+        subject do
+          put :update,
+          id: post.id,
+          post: attributes_for(:short_post_title),
+          format: :json
+        end
+        it 'returns 422' do
+          subject
+          expect(response.status).to eq 422
+        end
+        it 'returns a error message' do
+          subject
+          expect(JSON.parse(response.body)['title']).not_to be_empty
+        end
+      end
+
+      context 'with invalid id' do
+        subject do
+          put :update,
+          id: 0,
+          post: attributes_for(:post),
+          format: :json
+        end
+        it 'returns 422' do
+          subject
+          expect(response.status).to eq 422
+        end
+
+        it 'returns error message' do
+          subject
+          expect(JSON.parse(response.body)['error']).to eq 'Post not found'
+        end
       end
     end
 
-    context 'with invalid attributes' do
+
+    describe 'html' do
       let!(:post) { create(:post) }
-      it 'does not change post\'s attributes' do
-        put :update, id: post.id, post: attributes_for(:post, title: 'new title', name: nil)
-        post.reload
-        expect(post.title).to eq 'title'
+      context 'with valid title attribute' do
+        subject do
+          put :update,
+          id: post.id,
+          post: attributes_for(:post, title: 'new title')
+        end
+
+        it 'returns 302' do
+          subject
+          expect(response.status).to eq 302
+        end
+        it 'changes post\'s title' do
+          subject
+          expect(post.reload.title).to eq 'new title'
+        end
       end
 
-      it 'renders edit template' do
-        put :update, id: post.id, post: attributes_for(:post, title: 'new title', name: nil)
-        post.reload
-        expect(response).to render_template('edit')
+      context 'with valid name attribute' do
+        subject do
+          put :update,
+          id: post.id,
+          post: attributes_for(:post, name: 'new user')
+        end
+
+        it 'returns 302' do
+          subject
+          expect(response.status).to eq 302
+        end
+        it 'changes post\'s name' do
+          subject
+          expect(post.reload.name).to eq 'new user'
+        end
+      end
+
+      context 'with valid content attribute' do
+        subject do
+          put :update,
+          id: post.id,
+          post: attributes_for(:post, content: 'new content')
+        end
+
+        it 'returns 302' do
+          subject
+          expect(response.status).to eq 302
+        end
+        it 'changes post\'s content' do
+          subject
+          expect(post.reload.content).to eq 'new content'
+        end
+      end
+
+      context 'with valid content attribute' do
+        subject do
+          put :update,
+          id: post.id,
+          post: attributes_for(:post, content: 'new content')
+        end
+
+        it 'returns 302' do
+          subject
+          expect(response.status).to eq 302
+        end
+        it 'changes post\'s content' do
+          subject
+          expect(post.reload.content).to eq 'new content'
+        end
+      end
+
+      context 'with invalid name attribute' do
+        subject do
+          put :update,
+          id: post.id,
+          post: attributes_for(:invalid_post_name)
+        end
+        it 'redeners edit template' do
+          subject
+          expect(response).to render_template('edit')
+        end
+      end
+
+      context 'with invalid title attribute' do
+        subject do
+          put :update,
+          id: post.id,
+          post: attributes_for(:invalid_post_title)
+        end
+        it 'redeners edit template' do
+          subject
+          expect(response).to render_template('edit')
+        end
+      end
+
+      context 'when title is short than 5 characters' do
+        subject do
+          put :update,
+          id: post.id,
+          post: attributes_for(:short_post_title)
+        end
+        it 'redeners edit template' do
+          subject
+          expect(response).to render_template('edit')
+        end
+      end
+
+      context 'with invalid id' do
+        subject do
+          put :update,
+          id: 0,
+          post: attributes_for(:post)
+        end
+        it 'redirects to index' do
+          subject
+          expect(response).to redirect_to(posts_url)
+        end
       end
     end
   end
