@@ -3,6 +3,7 @@ require 'rails_helper'
 describe PostsController do
   describe '#index' do
     let!(:post1) { create(:post) }
+    let!(:post2) { create(:post) }
     it 'returns 200' do
       get :index
       expect(response.status).to eq 200
@@ -13,7 +14,6 @@ describe PostsController do
       expect(response.content_type).to eq('application/json')
     end
 
-    let!(:post2) { create(:post) }
     it 'returns posts' do
       get :index, format: :json
       index_json = JSON.parse(response.body)
@@ -36,8 +36,7 @@ describe PostsController do
 
       it 'retuns a post' do
         get :show, id: post.id, format: :json
-        show_json = JSON.parse(response.body)
-        expect(show_json['title']).to eq 'show_title'
+        expect(JSON.parse(response.body)['title']).to eq 'show_title'
       end
     end
 
@@ -55,21 +54,27 @@ describe PostsController do
   end
 
   describe '#create' do
-    new_post = {
-      title: 'default title',
-      name: 'test',
-      content: 'new_content'
-    }
+    context 'with valid attributes' do
+      it 'create a new post' do
+        expect { post :create, post: attributes_for(:post) }.to change(Post, :count).by(1)
+      end
 
-    it 'returns 200' do
-      post :create, new_post
-      expect(response.status).to eq 200
+      it 'redirects to the new post' do
+        post :create, post: attributes_for(:post)
+        expect(response).to redirect_to(Post.last)
+      end
     end
 
-    # it 'returns json format' do
-    #   post :create, new_post, format: :json
-    #   expect(response.content_type).to eq('application/json')
-    # end
+    context 'with invalid attributes' do
+      it 'does not save the new post' do
+        expect { post :create, post: attributes_for(:invalid_post) }.not_to change(Post, :count)
+      end
+
+      it 'renders new template' do
+        post :create, post: attributes_for(:invalid_post)
+        expect(response).to render_template('new')
+      end
+    end
   end
 
   describe '#update' do
@@ -87,7 +92,7 @@ describe PostsController do
 
   describe '#destroy' do
     let!(:post) { create(:post) }
-    it 'returns 200' do
+    it 'returns 302' do
       delete :destroy, id: post.id
       expect(response.status).to eq 302
     end
