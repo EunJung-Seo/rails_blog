@@ -17,7 +17,7 @@ class PostsController < ApplicationController
     @post = Post.find_by_id(params[:id])
 
     respond_to do |format|
-      if @post
+      if @post.present?
         format.html # show.html.erb
         format.json { render json: @post }
       else
@@ -65,7 +65,7 @@ class PostsController < ApplicationController
     @post = Post.find_by_id(params[:id])
 
     respond_to do |format|
-      if @post
+      if @post.present?
         if @post.update_attributes(params[:post])
           format.html { redirect_to @post, notice: 'Post was successfully updated.' }
           format.json { head :no_content }
@@ -83,12 +83,18 @@ class PostsController < ApplicationController
   # DELETE /posts/1
   # DELETE /posts/1.json
   def destroy
-    @post = Post.find(params[:id])
-    @post.destroy
+    @post = Post.find_by_id(params[:id])
+    
 
     respond_to do |format|
-      format.html { redirect_to posts_url }
-      format.json { head :no_content }
+      if @post.present?
+        @post.destroy
+        format.html { redirect_to posts_url }
+        format.json { head :no_content }
+      else
+        format.html { redirect_to posts_url }
+        format.json { render json: { 'error' => 'Post not found' }, status: :unprocessable_entity }
+      end
     end
   end
 end
