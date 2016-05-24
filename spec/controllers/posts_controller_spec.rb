@@ -32,37 +32,72 @@ describe PostsController do
   end
 
   describe '#show' do
-    context 'with valid id' do
-      let!(:post) { create(:post, title: 'show_title') }
-      it 'returns 200' do
-        get :show, id: post.id
-        expect(response.status).to eq 200
+    describe 'JSON' do
+      context 'with valid id' do
+        let!(:post) { create(:post, title: 'show_title') }
+        subject { get :show, id: post.id, format: :json }
+
+        it 'returns 200' do
+          subject
+          expect(response.status).to eq 200
+        end
+
+        it 'returns the post' do
+          subject
+          expect(JSON.parse(response.body)['title']).to eq 'show_title'
+        end
       end
 
-      it 'returns json format' do
-        get :show, id: post.id, format: :json
-        expect(response.content_type).to eq('application/json')
-      end
+      context 'with invalid id' do
+        subject { get :show, id: -10, format: :json }
+        it 'returns 404' do
+          subject
+          expect(response.status).to eq 404
+        end
 
-      it 'retuns a post' do
-        get :show, id: post.id, format: :json
-        expect(JSON.parse(response.body)['title']).to eq 'show_title'
+        it 'returns error message' do
+          subject
+          expect(JSON.parse(response.body)['error']).to eq 'Post not found'
+        end
       end
     end
 
-    context 'with invalid id' do
-      it 'redirect to index' do
-        get :show, id: -10
-        expect(response).to redirect_to(posts_url)
+    describe 'html' do
+      context 'with valid id' do
+        let!(:post) { create(:post, title: 'show_title') }
+        subject { get :show, id: post.id }
+
+        it 'returns 200' do
+          subject
+          expect(response.status).to eq 200
+        end
+
+        it 'renders show template' do
+          subject
+          expect(response).to render_template('show')
+        end
+
+        it 'renders the post' do
+          subject
+          expect(assigns(:post)).to eq post
+        end
       end
 
-      it 'returns no content' do
-        get :show, id: -10, format: :json
-        expect(JSON.parse(response.body)['status']).to eq 'cannot_found'
+      context 'with invalid id' do
+        subject { get :show, id: -10 }
+        it 'returns 302' do
+          subject
+          expect(response.status).to eq 302
+        end
+
+        it 'redirects to index' do
+          subject
+          expect(response).to redirect_to(posts_url)
+        end
       end
     end
   end
- 
+
   describe '#create' do
     context 'with valid attributes' do
       it 'create a new post' do
