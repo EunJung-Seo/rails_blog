@@ -2,22 +2,32 @@ require 'rails_helper'
 
 describe PostsController do
   describe '#index' do
-    let!(:post1) { create(:post) }
-    let!(:post2) { create(:post) }
-    it 'returns 200' do
-      get :index
-      expect(response.status).to eq 200
+    context 'when respond format is JSON' do
+      let!(:post_list) { create_list :post, 2 }
+      subject { get :index, format: :json }
+      it 'returns 200' do
+        subject
+        expect(response.status).to eq 200
+      end
+
+      it 'returns posts' do
+        subject
+        expect(JSON.parse(response.body).length).to eq 2
+      end
     end
 
-    it 'returns json format' do
-      get :index, format: :json
-      expect(response.content_type).to eq('application/json')
-    end
+    context 'when respond format is html' do
+      let!(:post_list) { create_list :post, 2 }
+      subject { get :index }
+      it 'returns 200' do
+        subject
+        expect(response.status).to eq 200
+      end
 
-    it 'returns posts' do
-      get :index, format: :json
-      index_json = JSON.parse(response.body)
-      expect(index_json.length).to eq 2
+      it 'returns posts' do
+        subject
+        expect(assigns(:posts)).to eq post_list
+      end
     end
   end
 
@@ -52,7 +62,7 @@ describe PostsController do
       end
     end
   end
-
+ 
   describe '#create' do
     context 'with valid attributes' do
       it 'create a new post' do
@@ -117,7 +127,7 @@ describe PostsController do
     end
 
     it 'removes the post' do
-      delete :destroy, id: post.id, foramt: :json
+      delete :destroy, id: post.id, format: :json
       expect(Post.count).to eq 0
     end
   end
