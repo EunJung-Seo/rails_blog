@@ -22,7 +22,7 @@ class PostsController < ApplicationController
         format.json { render json: @post }
       else
         format.html { redirect_to posts_url }
-        format.json { render json: { 'error' => 'Post not found' }, status: :not_found }
+        format.json { render json: { 'error' => 'Post not found' }, status: :unprocessable_entity }
       end
     end
   end
@@ -62,15 +62,20 @@ class PostsController < ApplicationController
   # PUT /posts/1
   # PUT /posts/1.json
   def update
-    @post = Post.find(params[:id])
+    @post = Post.find_by_id(params[:id])
 
     respond_to do |format|
-      if @post.update_attributes(params[:post])
-        format.html { redirect_to @post, notice: 'Post was successfully updated.' }
-        format.json { head :no_content }
+      if @post
+        if @post.update_attributes(params[:post])
+          format.html { redirect_to @post, notice: 'Post was successfully updated.' }
+          format.json { head :no_content }
+        else
+          format.html { render action: "edit" }
+          format.json { render json: @post.errors, status: :unprocessable_entity }
+        end
       else
-        format.html { render action: "edit" }
-        format.json { render json: @post.errors, status: :unprocessable_entity }
+        format.html { redirect_to posts_url }
+        format.json { render json: { 'error' => 'Post not found' }, status: :unprocessable_entity }
       end
     end
   end
