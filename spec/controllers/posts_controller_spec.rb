@@ -12,7 +12,8 @@ describe PostsController do
 
       it 'returns posts' do
         subject
-        expect(JSON.parse(response.body).length).to eq 2
+        # expect(JSON.parse(response.body).length).to eq 2
+        expect(response.body).to eq post_list.to_json
       end
     end
 
@@ -34,7 +35,7 @@ describe PostsController do
   describe '#show' do
     describe 'JSON' do
       context 'with valid id' do
-        let!(:post) { create(:post, title: 'show_title') }
+        let(:post) { create(:post, title: 'show_title') }
         subject { get :show, id: post.id, format: :json }
 
         it 'returns 200' do
@@ -64,7 +65,7 @@ describe PostsController do
 
     describe 'html' do
       context 'with valid id' do
-        let!(:post) { create(:post, title: 'show_title') }
+        let(:post) { create(:post, title: 'show_title') }
         subject { get :show, id: post.id }
 
         it 'returns 200' do
@@ -77,7 +78,7 @@ describe PostsController do
           expect(response).to render_template('show')
         end
 
-        it 'renders the post' do
+        it 'assigns post to @post' do
           subject
           expect(assigns(:post)).to eq post
         end
@@ -217,7 +218,7 @@ describe PostsController do
 
   describe '#update' do
     describe 'JSON' do
-      let!(:post) { create(:post) }
+      let(:post) { create(:post) }
       context 'with valid title attribute' do
         subject do
           put :update,
@@ -344,7 +345,7 @@ describe PostsController do
 
 
     describe 'html' do
-      let!(:post) { create(:post) }
+      let(:post) { create(:post) }
       context 'with valid title attribute' do
         subject do
           put :update,
@@ -466,7 +467,7 @@ describe PostsController do
   describe '#destroy' do
     describe 'JSON' do
       context 'with valid id' do
-        let!(:post) { create(:post) }
+        let(:post) { create(:post) }
         subject { delete :destroy, id: post.id, format: :json }
         it 'returns 204' do
           subject
@@ -494,7 +495,7 @@ describe PostsController do
     end
     describe 'html' do
       context 'with valid id' do
-        let!(:post) { create(:post) }
+        let(:post) { create(:post) }
         subject { delete :destroy, id: post.id }
         it 'returns 302' do
           subject
