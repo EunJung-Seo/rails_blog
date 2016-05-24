@@ -99,24 +99,132 @@ describe PostsController do
   end
 
   describe '#create' do
-    context 'with valid attributes' do
-      it 'create a new post' do
-        expect { post :create, post: attributes_for(:post) }.to change(Post, :count).by(1)
+    describe 'JSON' do
+      context 'with valid attributes' do
+        subject { post :create, post: attributes_for(:post), format: :json }
+        
+        it 'returns 201' do
+          subject
+          expect(response.status).to  eq 201
+        end
+
+        it 'has a default title' do
+          subject
+          expect(JSON.parse(response.body)['title']).to eq 'title'
+        end
+
+        it 'has a default name' do
+          subject
+          expect(JSON.parse(response.body)['name']).to eq 'user1'
+        end
+
+        it 'has a default content' do
+          subject
+          expect(JSON.parse(response.body)['content']).to eq 'content'
+        end
       end
 
-      it 'redirects to the new post' do
-        post :create, post: attributes_for(:post)
-        expect(response).to redirect_to(Post.last)
+      context 'with invalid name attribute' do
+        subject { post :create, post: attributes_for(:invalid_post_name), format: :json }
+        it 'returns 422' do
+          subject
+          expect(response.status).to eq 422
+        end
+
+        it 'returns a error message' do
+          subject
+          expect(JSON.parse(response.body)['name']).not_to be_empty
+        end
+      end
+
+      context 'with invalid title attribute' do
+        subject { post :create, post: attributes_for(:invalid_post_title), format: :json }
+        it 'returns 422' do
+          subject
+          expect(response.status).to eq 422
+        end
+
+        it 'returns a error message' do
+          subject
+          expect(JSON.parse(response.body)['title']).not_to be_empty
+        end
+      end
+
+      context 'when title is short than 5 characters' do
+        subject { post :create, post: attributes_for(:short_post_title), format: :json }
+        it 'returns 422' do
+          subject
+          expect(response.status).to eq 422
+        end
+
+        it 'returns a error message' do
+          subject
+          expect(JSON.parse(response.body)['title']).not_to be_empty
+        end
       end
     end
 
-    context 'with invalid attributes' do
-      it 'does not save the new post' do
-        expect { post :create, post: attributes_for(:invalid_post) }.not_to change(Post, :count)
+    describe 'html' do
+      context 'with valid attributes' do
+        subject { post :create, post: attributes_for(:post) }
+        
+        it 'returns 302' do
+          subject
+          expect(response.status).to eq 302
+        end
+
+        it 'has a default title' do
+          subject
+          expect(assigns[:post]['title']).to eq 'title'
+        end
+
+        it 'has a default name' do
+          subject
+          expect(assigns[:post]['name']).to eq 'user1'
+        end
+
+        it 'has a default content' do
+          subject
+          expect(assigns[:post]['content']).to eq 'content'
+        end
+      end
+    end
+
+    context 'with invalid name attribute' do
+      subject { post :create, post: attributes_for(:invalid_post_name) }
+      it 'returns 200' do
+        subject
+        expect(response.status).to eq 200
       end
 
       it 'renders new template' do
-        post :create, post: attributes_for(:invalid_post)
+        subject
+        expect(response).to render_template('new')
+      end
+    end
+
+    context 'with invalid title attribute' do
+      subject { post :create, post: attributes_for(:invalid_post_title) }
+      it 'returns 200' do
+        subject
+        expect(response.status).to eq 200
+      end
+
+      it 'renders new template' do
+        subject
+        expect(response).to render_template('new')
+      end
+    end
+
+    context 'when title is short than 5 characters' do
+      subject { post :create, post: attributes_for(:short_post_title) }
+      it 'returns 200' do
+        subject
+        expect(response.status).to eq 200
+      end
+
+      it 'renders new template' do
+        subject
         expect(response).to render_template('new')
       end
     end
