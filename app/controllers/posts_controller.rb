@@ -22,7 +22,7 @@ class PostsController < ApplicationController
         format.json { render json: @post }
       else
         format.html { redirect_to posts_url }
-        format.json { render json: { status: :cannot_found } }
+        format.json { render json: { 'error' => 'Post not found' }, status: :not_found }
       end
     end
   end
