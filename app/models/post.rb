@@ -34,14 +34,14 @@ class Post < ActiveRecord::Base
 
   def content_should_have_specific_words
     words = %w(어제 오늘 내일)
-    matched_words = words
+    matched_words = words.clone
     words.each do |word|
       if self.content.match(/#{word}/i)
         matched_words.delete(word)
       end
     end
     if matched_words.present?
-      errors.add(:title, "내용에 빠진 단어가 있습니다 : #{matched_words.join(', ')}")
+      errors.add(:content, "내용에 빠진 단어가 있습니다 : #{matched_words.join(', ')}")
     end
   end
 end
