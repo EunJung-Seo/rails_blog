@@ -34,7 +34,6 @@ class PostsController < ApplicationController
 
   # GET /posts/1/edit
   def edit
-
   end
 
   # POST /posts
@@ -87,10 +86,12 @@ class PostsController < ApplicationController
 
   def find_post_by_id
     @post = Post.find_by_id(params[:id])
-    if @post.blank?
-      respond_to do |format|
+    respond_to do |format|
+      if @post.blank?
         format.html { redirect_to posts_url }
-        format.json { render json: { 'error' => 'Post not found' }, status: :unprocessable_entity }
+        format.json { render json: { 'error' => 'Post not found' }, status: :unprocessable_entity}
+      else
+        return @post
       end
     end
   end
