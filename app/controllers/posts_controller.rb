@@ -82,7 +82,7 @@ class PostsController < ApplicationController
     if @post.blank?
       respond_to do |format|
         format.html { redirect_to posts_url }
-        format.json { render json: { 'error' => 'Post not found' }, status: :unprocessable_entity }
+        format.json { render json: { error: 'Post not found' }, status: :unprocessable_entity }
       end
     end
   end
@@ -91,7 +91,7 @@ class PostsController < ApplicationController
     unless Post.new(params[:post]).valid?
       respond_to do |format|
         format.html { redirect_to request.referer }
-        format.json { render json: { error: 'Post invalid' }, status: :unprocessable_entity }
+        format.json { render json: { error: 'Invalid Post' }, status: :unprocessable_entity }
       end
     end
   end
