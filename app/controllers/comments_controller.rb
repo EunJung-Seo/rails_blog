@@ -1,6 +1,7 @@
-# Comment Controller
+# -*- encoding : utf-8 -*-
 class CommentsController < ApplicationController
   before_filter :find_post_by_id
+  before_filter :check_comment_validation, only: [:create]
   before_filter :find_comment_by_id, only: [:destroy]
 
   def create
@@ -33,10 +34,20 @@ class CommentsController < ApplicationController
 
   def find_comment_by_id
     @comment = @post.comments.find(params[:id])
+    binding.pry
     if @comment.blank?
       respond_to do |format|
         format.html { redirect_to request.referer }
         format.json { render json: { error: 'Comment not found' }, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  def check_comment_validation
+    unless Comment.new(params[:comment]).valid?
+      respond_to do |format|
+        format.html { redirect_to request.referer }
+        format.json { render json: { error: 'Invalid comment' }, status: :unprocessable_entity }
       end
     end
   end
