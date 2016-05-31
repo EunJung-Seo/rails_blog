@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 require 'rails_helper'
 
 describe PostsController do
@@ -98,9 +99,9 @@ describe PostsController do
   end
 
   describe '#show' do
+    let(:post) { create :post }
     describe 'JSON' do
       context 'with valid id' do
-        let(:post) { create(:post, title: 'show_title') }
         subject { get :show, id: post.id, format: :json }
 
         it "returns 200" do
@@ -110,7 +111,7 @@ describe PostsController do
 
         it 'returns the post' do
           subject
-          expect(JSON.parse(response.body)['title']).to eq 'show_title'
+          expect(JSON.parse(response.body)['title']).to eq 'New! 새글!'
         end
       end
 
@@ -130,7 +131,6 @@ describe PostsController do
 
     describe 'html' do
       context 'with valid id' do
-        let(:post) { create(:post, title: 'show_title') }
         subject { get :show, id: post.id }
 
         it "returns 200" do
