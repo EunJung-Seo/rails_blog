@@ -1,5 +1,6 @@
 class PostsController < ApplicationController
   before_filter :find_post_by_id, only: [:show, :edit, :update, :destroy]
+  before_filter :check_post_validation, only: [:create, :update]
 
   # GET /posts
   # GET /posts.json
@@ -42,13 +43,9 @@ class PostsController < ApplicationController
     @post = Post.new(params[:post])
 
     respond_to do |format|
-      if @post.save
-        format.html { redirect_to @post, notice: 'Post was successfully created.' }
-        format.json { render json: @post, status: :created, location: @post }
-      else
-        format.html { render action: "new" }
-        format.json { render json: @post.errors, status: :unprocessable_entity }
-      end
+      @post.save
+      format.html { redirect_to @post, notice: 'Post was successfully created.' }
+      format.json { render json: @post, status: :created, location: @post }
     end
   end
 
@@ -56,13 +53,9 @@ class PostsController < ApplicationController
   # PUT /posts/1.json
   def update
     respond_to do |format|
-      if @post.update_attributes(params[:post])
-        format.html { redirect_to @post, notice: 'Post was successfully updated.' }
-        format.json { head :no_content }
-      else
-        format.html { render action: "edit" }
-        format.json { render json: @post.errors, status: :unprocessable_entity }
-      end
+      @post.update_attributes(params[:post])
+      format.html { redirect_to @post, notice: 'Post was successfully updated.' }
+      format.json { head :no_content }
     end
   end
 
@@ -86,12 +79,19 @@ class PostsController < ApplicationController
 
   def find_post_by_id
     @post = Post.find_by_id(params[:id])
-    respond_to do |format|
-      if @post.blank?
+    if @post.blank?
+      respond_to do |format|
         format.html { redirect_to posts_url }
-        format.json { render json: { 'error' => 'Post not found' }, status: :unprocessable_entity}
-      else
-        return @post
+        format.json { render json: { 'error' => 'Post not found' }, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  def check_post_validation
+    unless Post.new(params[:post]).valid?
+      respond_to do |format|
+        format.html { redirect_to request.referer }
+        format.json { render json: { error: 'Post invalid' }, status: :unprocessable_entity }
       end
     end
   end
