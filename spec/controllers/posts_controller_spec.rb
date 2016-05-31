@@ -7,16 +7,16 @@ describe PostsController do
   #                           SHARED EXAMPLES
   #
   # ===============================================================
-  shared_examples 'invalid post parameter in json request' do |attribute|
-    it 'returns 422' do
-      subject
-      expect(response.status).to eq 422
-    end
-    it 'returns error message' do
-      subject
-      expect(JSON.parse(response.body)[attribute]).not_to be_empty
-    end
-  end
+  # shared_examples 'invalid post parameter' do |format, attribute|
+  #   it 'returns error message' do
+  #     subject
+  #     if format == 'json'
+  #       expect(JSON.parse(response.body)[attribute]).not_to be_empty
+  #     else
+
+  #     end
+  #   end
+  # end
 
   shared_examples 'valid post parameter' do |format, attribute, content|
     it "has a default #{attribute}" do
@@ -171,26 +171,46 @@ describe PostsController do
           expect(response.status).to eq 201
         end
 
-        include_examples 'valid post parameter', 'json', 'title', 'title'
-        include_examples 'valid post parameter', 'json', 'name', 'user1'
-        include_examples 'valid post parameter', 'json', 'content', 'content'
+        include_examples 'valid post parameter', 'json', 'title', 'New! 새글!'
+        include_examples 'valid post parameter', 'json', 'name', 'test_name'
+        include_examples 'valid post parameter', 'json', 'content', '어제는 밥, 오늘은 면, 내일은 빵?'
       end
 
       context 'with invalid title attribute' do
         subject { post :create, post: attributes_for(:invalid_post_title), format: :json }
-        include_examples 'invalid post parameter in json request', 'title'
+        it 'returns 422' do
+          subject
+          expect(response.status).to eq 422
+        end
+        it 'returns error message' do
+          subject
+          expect(JSON.parse(response.body)['error']).to eq 'Invalid Post'
+        end
       end
 
       context 'with invalid name attribute' do
         subject { post :create, post: attributes_for(:invalid_post_name), format: :json }
-        include_examples 'invalid post parameter in json request', 'name'
+        it 'returns 422' do
+          subject
+          expect(response.status).to eq 422
+        end
+        it 'returns error message' do
+          subject
+          expect(JSON.parse(response.body)['error']).to eq 'Invalid Post'
+        end
       end
 
       context 'when title is short than 5 characters' do
         subject { post :create, post: attributes_for(:short_post_title), format: :json }
-        include_examples 'invalid post parameter in json request', 'title'
+        it 'returns 422' do
+          subject
+          expect(response.status).to eq 422
+        end
+        it 'returns error message' do
+          subject
+          expect(JSON.parse(response.body)['error']).to eq 'Invalid Post'
+        end
       end
-
     end
 
     describe 'html' do
@@ -202,23 +222,45 @@ describe PostsController do
           expect(response.status).to eq 302
         end
 
-        include_examples 'valid post parameter', 'html', 'title', 'title'
-        include_examples 'valid post parameter', 'html', 'name', 'user1'
-        include_examples 'valid post parameter', 'html', 'content', 'content'
-      end
-      context 'with invalid title attribute' do
-        subject { post :create, post: attributes_for(:invalid_post_name) }
-        include_examples 'rendering template', 'new'
+        include_examples 'valid post parameter', 'html', 'title', 'New! 새글!'
+        include_examples 'valid post parameter', 'html', 'name', 'test_name'
+        include_examples 'valid post parameter', 'html', 'content', '어제는 밥, 오늘은 면, 내일은 빵?'
       end
 
       context 'with invalid name attribute' do
+        subject { post :create, post: attributes_for(:invalid_post_name) }
+        it 'returns 302' do
+          subject
+          expect(response.status).to eq 302
+        end
+        it 'returns error message' do
+          subject
+          expect(flash.alert).to eq '유효하지 않은 포스트입니다.'
+        end
+      end
+
+      context 'with invalid title attribute' do
         subject { post :create, post: attributes_for(:invalid_post_title) }
-        include_examples 'rendering template', 'new'
+        it 'returns 302' do
+          subject
+          expect(response.status).to eq 302
+        end
+        it 'returns error message' do
+          subject
+          expect(flash.alert).to eq '유효하지 않은 포스트입니다.'
+        end
       end
 
       context 'when title is short than 5 characters' do
         subject { post :create, post: attributes_for(:short_post_title) }
-        include_examples 'rendering template', 'new'
+        it 'returns 302' do
+          subject
+          expect(response.status).to eq 302
+        end
+        it 'returns error message' do
+          subject
+          expect(flash.alert).to eq '유효하지 않은 포스트입니다.'
+        end
       end
     end
   end
