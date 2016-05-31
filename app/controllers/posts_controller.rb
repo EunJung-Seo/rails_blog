@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 class PostsController < ApplicationController
   before_filter :find_post_by_id, only: [:show, :edit, :update, :destroy]
   before_filter :check_post_validation, only: [:create, :update]
@@ -81,7 +82,7 @@ class PostsController < ApplicationController
     @post = Post.find_by_id(params[:id])
     if @post.blank?
       respond_to do |format|
-        format.html { redirect_to posts_url }
+        format.html { redirect_to posts_url, flash[:alert] => '존재하지 않는 포스트입니다.' }
         format.json { render json: { error: 'Post not found' }, status: :unprocessable_entity }
       end
     end
@@ -90,7 +91,7 @@ class PostsController < ApplicationController
   def check_post_validation
     unless Post.new(params[:post]).valid?
       respond_to do |format|
-        format.html { redirect_to request.referer }
+        format.html { redirect_to request.referer, flash[:alert] => '유효하지 않은 포스트입니다.' }
         format.json { render json: { error: 'Invalid Post' }, status: :unprocessable_entity }
       end
     end
