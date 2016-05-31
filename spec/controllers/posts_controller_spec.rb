@@ -31,7 +31,7 @@ describe PostsController do
   # shared_examples 'valid post parameter in html request' do |attribute, content|
   #   it "has a default #{attribute}" do
   #     subject
-      
+
   #   end
   # end
 
@@ -61,26 +61,20 @@ describe PostsController do
     end
   end
 
-  shared_examples 'return response status' do |code|
-    it "returns #{code}" do
-      subject
-      expect(response.status).to eq code
-    end
-  end
-
-
-
   # ===============================================================
   #
   #                              TESTS
   #
   # ===============================================================
   describe '#index' do
+    let!(:post_list) { create_list :post, 2 }
     context 'when respond format is JSON' do
-      let!(:post_list) { create_list :post, 2 }
       subject { get :index, format: :json }
 
-      include_examples 'return response status', 200
+      it "returns 200" do
+        subject
+        expect(response.status).to eq 200
+      end
 
       it 'returns posts' do
         subject
@@ -89,10 +83,12 @@ describe PostsController do
     end
 
     context 'when respond format is html' do
-      let!(:post_list) { create_list :post, 2 }
       subject { get :index }
 
-      include_examples 'return response status', 200
+      it "returns 200" do
+        subject
+        expect(response.status).to eq 200
+      end
 
       it 'returns posts' do
         subject
@@ -107,7 +103,10 @@ describe PostsController do
         let(:post) { create(:post, title: 'show_title') }
         subject { get :show, id: post.id, format: :json }
 
-        include_examples 'return response status', 200
+        it "returns 200" do
+          subject
+          expect(response.status).to eq 200
+        end
 
         it 'returns the post' do
           subject
@@ -134,7 +133,10 @@ describe PostsController do
         let(:post) { create(:post, title: 'show_title') }
         subject { get :show, id: post.id }
 
-        include_examples 'return response status', 200
+        it "returns 200" do
+          subject
+          expect(response.status).to eq 200
+        end
 
         it 'assigns post to @post' do
           subject
@@ -163,8 +165,11 @@ describe PostsController do
     describe 'JSON' do
       context 'with valid attributes' do
         subject { post :create, post: attributes_for(:post), format: :json }
-        
-        include_examples 'return response status', 201
+
+        it "returns 200" do
+          subject
+          expect(response.status).to eq 201
+        end
 
         include_examples 'valid post parameter', 'json', 'title', 'title'
         include_examples 'valid post parameter', 'json', 'name', 'user1'
@@ -185,14 +190,17 @@ describe PostsController do
         subject { post :create, post: attributes_for(:short_post_title), format: :json }
         include_examples 'invalid post parameter in json request', 'title'
       end
-      
+
     end
 
     describe 'html' do
       context 'with valid attributes' do
         subject { post :create, post: attributes_for(:post) }
-        
-        include_examples 'return response status', 302
+
+        it "returns 302" do
+          subject
+          expect(response.status).to eq 302
+        end
 
         include_examples 'valid post parameter', 'html', 'title', 'title'
         include_examples 'valid post parameter', 'html', 'name', 'user1'
@@ -225,7 +233,10 @@ describe PostsController do
           post: attributes_for(:post, name: 'new user'),
           format: :json
         end
-        include_examples 'return response status', 204
+        it "returns 204" do
+          subject
+          expect(response.status).to eq 204
+        end
         include_examples 'update post parameter', 'name', 'new user'
       end
 
@@ -236,7 +247,10 @@ describe PostsController do
           post: attributes_for(:post, title: 'new title'),
           format: :json
         end
-        include_examples 'return response status', 204
+        it "returns 204" do
+          subject
+          expect(response.status).to eq 204
+        end
         include_examples 'update post parameter', 'title', 'new title'
       end
 
@@ -247,7 +261,10 @@ describe PostsController do
           post: attributes_for(:post, content: 'new content'),
           format: :json
         end
-        include_examples 'return response status', 204
+        it "returns 204" do
+          subject
+          expect(response.status).to eq 204
+        end
         include_examples 'update post parameter', 'content', 'new content'
       end
 
@@ -255,7 +272,7 @@ describe PostsController do
       context 'with invalid attribute' do
         include_examples 'update invalid post parameter in json request', 'name', nil
         include_examples 'update invalid post parameter in json request', 'title', nil
-        include_examples 'update invalid post parameter in json request', 'title', 'a' 
+        include_examples 'update invalid post parameter in json request', 'title', 'a'
       end
 
       context 'with invalid id' do
@@ -288,19 +305,28 @@ describe PostsController do
 
       context 'with valid name attribute' do
         subject { post :create, id: post.id, post: attributes_for(:post, name: 'new user') }
-        include_examples 'return response status', 302
+        it "returns 302" do
+          subject
+          expect(response.status).to eq 302
+        end
         include_examples 'update post parameter', 'name', 'new user'
       end
 
       context 'with valid title attribute' do
         subject { post :create, id: post.id, post: attributes_for(:post, title: 'new title') }
-        include_examples 'return response status', 302
+        it "returns 302" do
+          subject
+          expect(response.status).to eq 302
+        end
         include_examples 'update post parameter', 'title', 'new title'
       end
 
       context 'with valid content attribute' do
         subject { post :create, id: post.id, post: attributes_for(:post, content: 'new content') }
-        include_examples 'return response status', 302
+        it "returns 302" do
+          subject
+          expect(response.status).to eq 302
+        end
         include_examples 'update post parameter', 'content', 'new content'
       end
 
@@ -350,8 +376,11 @@ describe PostsController do
       context 'with valid id' do
         let(:post) { create(:post) }
         subject { delete :destroy, id: post.id, format: :json }
-        
-        include_examples 'return response status', 204
+
+        it "returns 204" do
+          subject
+          expect(response.status).to eq 204
+        end
 
         it 'removes the post' do
           subject
@@ -378,7 +407,10 @@ describe PostsController do
         let(:post) { create(:post) }
         subject { delete :destroy, id: post.id }
 
-        include_examples 'return response status', 302
+        it "returns 302" do
+          subject
+          expect(response.status).to eq 302
+        end
 
         it 'redirects to index' do
           subject
