@@ -18,4 +18,20 @@ FactoryGirl.define do
   factory :invalid_post_name, parent: :post do
     name nil
   end
+
+  factory :invalid_content, parent: :post do
+    content nil
+  end
+
+  factory :long_post_title, parent: :post do
+    title 'longer than 10 characters'
+  end
+
+  factory :wrong_content, parent: :post do
+    content 'content'
+  end
+
+  factory :wrong_title, parent: :post do
+    title 'title'
+  end
 end
