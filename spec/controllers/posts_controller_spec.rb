@@ -158,7 +158,7 @@ describe PostsController do
         include_examples 'return error message', 'Invalid Post'
       end
 
-      context 'when title has permitted words' do
+      context 'when title has prohibited words' do
         subject { post :create, post: attributes_for(:wrong_title), format: :json }
 
         include_examples 'return status code', 422
