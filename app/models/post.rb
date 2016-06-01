@@ -18,6 +18,7 @@ class Post < ActiveRecord::Base
   private
 
   def title_does_not_have_prohibited_word
+    return if self.title.blank?
     matched_words = []
 
     prohibited_words = %w(post title 제목 포스트)
@@ -33,6 +34,7 @@ class Post < ActiveRecord::Base
   end
 
   def content_should_have_specific_words
+    return if self.content.blank?
     words = %w(어제 오늘 내일)
     matched_words = words.clone
     words.each do |word|
