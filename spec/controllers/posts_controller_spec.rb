@@ -7,58 +7,11 @@ describe PostsController do
   #                           SHARED EXAMPLES
   #
   # ===============================================================
-  # shared_examples 'invalid post parameter' do |format, attribute|
-  #   it 'returns error message' do
-  #     subject
-  #     if format == 'json'
-  #       expect(JSON.parse(response.body)[attribute]).not_to be_empty
-  #     else
-
-  #     end
-  #   end
-  # end
-
-  shared_examples 'valid post parameter' do |format, attribute, content|
-    it "has a default #{attribute}" do
-      subject
-      if format == 'json'
-        expect(JSON.parse(response.body)[attribute]).to eq content
-      else
-        expect(assigns[:post][attribute]).to eq content
-      end
-    end
-  end
-
-  # shared_examples 'valid post parameter in html request' do |attribute, content|
-  #   it "has a default #{attribute}" do
-  #     subject
-
-  #   end
-  # end
 
   shared_examples 'rendering template' do |action|
     it "reders #{action} template" do
       subject
       expect(response).to render_template(action)
-    end
-  end
-
-  shared_examples 'update post parameter' do |attribute, content|
-    it "changes post\'s #{attribute}" do
-      put :update, id: post.id, post: { attribute => content }
-      post.reload
-      expect(post[attribute]).to eq content
-    end
-  end
-
-  shared_examples 'update invalid post parameter in json request' do |attribute, content|
-    it 'returns 422' do
-      put :update, id: post.id, post: { attribute => content }, format: :json
-      expect(response.status).to eq 422
-    end
-    it 'returns a error message' do
-      put :update, id: post.id, post: { attribute => content }, format: :json
-      expect(JSON.parse(response.body)[attribute]).not_to be_empty
     end
   end
 
@@ -170,25 +123,13 @@ describe PostsController do
           subject
           expect(response.status).to eq 201
         end
-
-        include_examples 'valid post parameter', 'json', 'title', 'New! 새글!'
-        include_examples 'valid post parameter', 'json', 'name', 'test_name'
-        include_examples 'valid post parameter', 'json', 'content', '어제는 밥, 오늘은 면, 내일은 빵?'
-      end
-
-      context 'with invalid title attribute' do
-        subject { post :create, post: attributes_for(:invalid_post_title), format: :json }
-        it 'returns 422' do
+        it "has a default values" do
           subject
-          expect(response.status).to eq 422
-        end
-        it 'returns error message' do
-          subject
-          expect(JSON.parse(response.body)['error']).to eq 'Invalid Post'
+          expect(JSON.parse(response.body)).to include request.params['post']
         end
       end
 
-      context 'with invalid name attribute' do
+      context 'when name is nil' do
         subject { post :create, post: attributes_for(:invalid_post_name), format: :json }
         it 'returns 422' do
           subject
@@ -200,13 +141,73 @@ describe PostsController do
         end
       end
 
-      context 'when title is short than 5 characters' do
+      context 'when title is nil' do
+        subject { post :create, post: attributes_for(:invalid_post_title), format: :json }
+        it 'returns 422' do
+          subject
+          expect(response.status).to eq 422
+        end
+        it 'returns error message' do
+          subject
+          expect(JSON.parse(response.body)['error']).to eq 'Invalid Post'
+        end
+      end
+
+      context 'when title is shorter than 5 characters' do
         subject { post :create, post: attributes_for(:short_post_title), format: :json }
         it 'returns 422' do
           subject
           expect(response.status).to eq 422
         end
         it 'returns error message' do
+          subject
+          expect(JSON.parse(response.body)['error']).to eq 'Invalid Post'
+        end
+      end
+
+      context 'when title is longer than 10 characters' do
+        subject { post :create, post: attributes_for(:long_post_title), format: :json }
+        it 'returns 422' do
+          subject
+          expect(response.status).to eq 422
+        end
+        it 'returns a error message' do
+          subject
+          expect(JSON.parse(response.body)['error']).to eq 'Invalid Post'
+        end
+      end
+
+      context 'when title has permitted words' do
+        subject { post :create, post: attributes_for(:wrong_title), format: :json }
+        it 'returns 422' do
+          subject
+          expect(response.status).to eq 422
+        end
+        it 'returns a error message' do
+          subject
+          expect(JSON.parse(response.body)['error']).to eq 'Invalid Post'
+        end
+      end
+
+      context "when content is nil" do
+        subject { post :create, post: attributes_for(:invalid_content), format: :json }
+        it 'returns 422' do
+          subject
+          expect(response.status).to eq 422
+        end
+        it 'returns a error message' do
+          subject
+          expect(JSON.parse(response.body)['error']).to eq 'Invalid Post'
+        end
+      end
+
+      context "when content does not contain expected words" do
+        subject { post :create, post: attributes_for(:wrong_content), format: :json }
+        it 'returns 422' do
+          subject
+          expect(response.status).to eq 422
+        end
+        it 'returns a error message' do
           subject
           expect(JSON.parse(response.body)['error']).to eq 'Invalid Post'
         end
@@ -221,13 +222,13 @@ describe PostsController do
           subject
           expect(response.status).to eq 302
         end
-
-        include_examples 'valid post parameter', 'html', 'title', 'New! 새글!'
-        include_examples 'valid post parameter', 'html', 'name', 'test_name'
-        include_examples 'valid post parameter', 'html', 'content', '어제는 밥, 오늘은 면, 내일은 빵?'
+        it "has default vaues" do
+          subject
+          expect(assigns[:post].as_json).to include request.params['post']
+        end
       end
 
-      context 'with invalid name attribute' do
+      context 'when name is nil' do
         subject { post :create, post: attributes_for(:invalid_post_name) }
         it 'returns 302' do
           subject
@@ -239,7 +240,7 @@ describe PostsController do
         end
       end
 
-      context 'with invalid title attribute' do
+      context 'when title is nil' do
         subject { post :create, post: attributes_for(:invalid_post_title) }
         it 'returns 302' do
           subject
@@ -251,8 +252,56 @@ describe PostsController do
         end
       end
 
-      context 'when title is short than 5 characters' do
+      context 'when title is shorter than 5 characters' do
         subject { post :create, post: attributes_for(:short_post_title) }
+        it 'returns 302' do
+          subject
+          expect(response.status).to eq 302
+        end
+        it 'returns error message' do
+          subject
+          expect(flash.alert).to eq '유효하지 않은 포스트입니다.'
+        end
+      end
+
+      context 'when title is longer than 10 characters' do
+        subject { post :create, post: attributes_for(:long_post_title) }
+        it 'returns 302' do
+          subject
+          expect(response.status).to eq 302
+        end
+        it 'returns error message' do
+          subject
+          expect(flash.alert).to eq '유효하지 않은 포스트입니다.'
+        end
+      end
+
+      context 'when title has permitted words' do
+        subject { post :create, post: attributes_for(:wrong_title) }
+        it 'returns 302' do
+          subject
+          expect(response.status).to eq 302
+        end
+        it 'returns error message' do
+          subject
+          expect(flash.alert).to eq '유효하지 않은 포스트입니다.'
+        end
+      end
+
+      context "when content is nil" do
+        subject { post :create, post: attributes_for(:invalid_content) }
+        it 'returns 302' do
+          subject
+          expect(response.status).to eq 302
+        end
+        it 'returns error message' do
+          subject
+          expect(flash.alert).to eq '유효하지 않은 포스트입니다.'
+        end
+      end
+
+      context "when content does not contain expected words" do
+        subject { post :create, post: attributes_for(:wrong_content) }
         it 'returns 302' do
           subject
           expect(response.status).to eq 302
@@ -268,53 +317,111 @@ describe PostsController do
   describe '#update' do
     describe 'JSON' do
       let(:post) { create(:post) }
-      context 'with valid name attribute' do
+      context 'with valid attribute' do
         subject do
           put :update,
           id: post.id,
-          post: attributes_for(:post, name: 'new user'),
+          post: attributes_for(
+            :post,
+            name: 'new user',
+            title: 'updated',
+            content: '어제 오늘 그리고 내일'
+          ),
           format: :json
         end
+
         it "returns 204" do
           subject
           expect(response.status).to eq 204
         end
-        include_examples 'update post parameter', 'name', 'new user'
-      end
-
-      context 'with valid title attribute' do
-        subject do
-          post :create,
-          id: post.id,
-          post: attributes_for(:post, title: 'new title'),
-          format: :json
-        end
-        it "returns 204" do
+        it "changes post's attributes" do
           subject
-          expect(response.status).to eq 204
+          expect(post.reload.as_json).to include request.params['post']
         end
-        include_examples 'update post parameter', 'title', 'new title'
       end
 
-      context 'with valid content attribute' do
-        subject do
-          post :create,
-          id: post.id,
-          post: attributes_for(:post, content: 'new content'),
-          format: :json
-        end
-        it "returns 204" do
+      context 'when name is nil' do
+        subject { put :update, id: post.id, post: { 'name' => nil }, format: :json }
+        it 'returns 422' do
           subject
-          expect(response.status).to eq 204
+          expect(response.status).to eq 422
         end
-        include_examples 'update post parameter', 'content', 'new content'
+        it 'returns a error message' do
+          subject
+          expect(JSON.parse(response.body)['error']).to eq 'Invalid Post'
+        end
       end
 
-      # case 2 : subject 없이
-      context 'with invalid attribute' do
-        include_examples 'update invalid post parameter in json request', 'name', nil
-        include_examples 'update invalid post parameter in json request', 'title', nil
-        include_examples 'update invalid post parameter in json request', 'title', 'a'
+      context 'when title is nil' do
+        subject { put :update, id: post.id, post: { 'title' => nil }, format: :json }
+        it 'returns 422' do
+          subject
+          expect(response.status).to eq 422
+        end
+        it 'returns a error message' do
+          subject
+          expect(JSON.parse(response.body)['error']).to eq 'Invalid Post'
+        end
+      end
+
+      context 'when title is shorter than 5 characters' do
+        subject { put :update, id: post.id, post: { 'title' => 'a' }, format: :json }
+        it 'returns 422' do
+          subject
+          expect(response.status).to eq 422
+        end
+        it 'returns a error message' do
+          subject
+          expect(JSON.parse(response.body)['error']).to eq 'Invalid Post'
+        end
+      end
+
+      context 'when title is longer than 10 characters' do
+        subject { put :update, id: post.id, post: { 'title' => 'longer than 10 characters' }, format: :json }
+        it 'returns 422' do
+          subject
+          expect(response.status).to eq 422
+        end
+        it 'returns a error message' do
+          subject
+          expect(JSON.parse(response.body)['error']).to eq 'Invalid Post'
+        end
+      end
+
+      context 'when title has permitted words' do
+        subject { put :update, id: post.id, post: { 'title' => 'title 제목' }, format: :json }
+        it 'returns 422' do
+          subject
+          expect(response.status).to eq 422
+        end
+        it 'returns a error message' do
+          subject
+          expect(JSON.parse(response.body)['error']).to eq 'Invalid Post'
+        end
+      end
+
+      context "when content is nil" do
+        subject { put :update, id: post.id, post: { 'content' => nil }, format: :json }
+        it 'returns 422' do
+          subject
+          expect(response.status).to eq 422
+        end
+        it 'returns a error message' do
+          subject
+          expect(JSON.parse(response.body)['error']).to eq 'Invalid Post'
+        end
+      end
+
+      context "when content does not contain expected words" do
+        subject { put :update, id: post.id, post: { 'content' => 'content' }, format: :json }
+        it 'returns 422' do
+          subject
+          expect(response.status).to eq 422
+        end
+        it 'returns a error message' do
+          subject
+          expect(JSON.parse(response.body)['error']).to eq 'Invalid Post'
+        end
       end
 
       context 'with invalid id' do
@@ -339,64 +446,109 @@ describe PostsController do
     describe 'html' do
       let(:post) { create(:post) }
 
-      # context 'with valid attribute' do
-      #   include_examples 'update post parameter', 'name', 'new user'
-      #   include_examples 'update post parameter', 'title', 'new title'
-      #   include_examples 'update post parameter', 'content', 'new content'
-      # end
-
       context 'with valid name attribute' do
-        subject { post :create, id: post.id, post: attributes_for(:post, name: 'new user') }
+        subject do
+          put :update,
+          id: post.id,
+          post: attributes_for(
+            :post,
+            name: 'new user',
+            title: 'updated',
+            content: '어제 오늘 그리고 내일'
+          )
+        end
         it "returns 302" do
           subject
           expect(response.status).to eq 302
         end
-        include_examples 'update post parameter', 'name', 'new user'
+        it "changes post's attributes" do
+          subject
+          expect(post.reload.as_json).to include request.params['post']
+        end
       end
 
-      context 'with valid title attribute' do
-        subject { post :create, id: post.id, post: attributes_for(:post, title: 'new title') }
-        it "returns 302" do
+      context 'when name is nil' do
+        subject { put :update, id: post.id, post: { 'name' => nil } }
+        it 'returns 302' do
           subject
           expect(response.status).to eq 302
         end
-        include_examples 'update post parameter', 'title', 'new title'
+        it 'redirects to index' do
+          subject
+          expect(response).to redirect_to(posts_url)
+        end
       end
 
-      context 'with valid content attribute' do
-        subject { post :create, id: post.id, post: attributes_for(:post, content: 'new content') }
-        it "returns 302" do
+      context 'when title is nil' do
+        subject { put :update, id: post.id, post: { 'title' => nil } }
+        it 'returns 302' do
           subject
           expect(response.status).to eq 302
         end
-        include_examples 'update post parameter', 'content', 'new content'
+        it 'redirects to index' do
+          subject
+          expect(response).to redirect_to(posts_url)
+        end
       end
 
-      context 'with invalid name attribute' do
-        subject do
-          put :update,
-          id: post.id,
-          post: attributes_for(:invalid_post_name)
+      context 'when title is shorter than 5 characters' do
+        subject { put :update, id: post.id, post: { 'title' => 'a' } }
+        it 'returns 302' do
+          subject
+          expect(response.status).to eq 302
         end
-        include_examples 'rendering template', 'edit'
+        it 'redirects to index' do
+          subject
+          expect(response).to redirect_to(posts_url)
+        end
       end
 
-      context 'with invalid title attribute' do
-        subject do
-          put :update,
-          id: post.id,
-          post: attributes_for(:invalid_post_title)
+      context 'when title is longer than 10 characters' do
+        subject { put :update, id: post.id, post: { 'title' => 'longer than 10 characters' } }
+        it 'returns 302' do
+          subject
+          expect(response.status).to eq 302
         end
-        include_examples 'rendering template', 'edit'
+        it 'redirects to index' do
+          subject
+          expect(response).to redirect_to(posts_url)
+        end
       end
 
-      context 'when title is short than 5 characters' do
-        subject do
-          put :update,
-          id: post.id,
-          post: attributes_for(:short_post_title)
+      context 'when title has permitted words' do
+        subject { put :update, id: post.id, post: { 'title' => 'title 제목' } }
+        it 'returns 302' do
+          subject
+          expect(response.status).to eq 302
         end
-        include_examples 'rendering template', 'edit'
+        it 'redirects to index' do
+          subject
+          expect(response).to redirect_to(posts_url)
+        end
+      end
+
+      context "when content is nil" do
+        subject { put :update, id: post.id, post: { 'content' => nil } }
+        it 'returns 302' do
+          subject
+          expect(response.status).to eq 302
+        end
+        it 'redirects to index' do
+          subject
+          expect(response).to redirect_to(posts_url)
+        end
+      end
+
+      context "when content does not contain expected words" do
+        subject { put :update, id: post.id, post: { 'content' => 'content' } }
+        it 'returns 302' do
+          subject
+          expect(response.status).to eq 302
+        end
+        it 'redirects to index' do
+          subject
+          expect(response).to redirect_to(posts_url)
+        end
       end
 
       context 'with invalid id' do
@@ -414,9 +566,9 @@ describe PostsController do
   end
 
   describe '#destroy' do
+    let(:post) { create(:post) }
     describe 'JSON' do
       context 'with valid id' do
-        let(:post) { create(:post) }
         subject { delete :destroy, id: post.id, format: :json }
 
         it "returns 204" do
@@ -446,9 +598,7 @@ describe PostsController do
 
     describe 'html' do
       context 'with valid id' do
-        let(:post) { create(:post) }
         subject { delete :destroy, id: post.id }
-
         it "returns 302" do
           subject
           expect(response.status).to eq 302
