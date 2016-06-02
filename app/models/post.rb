@@ -18,6 +18,7 @@ class Post < ActiveRecord::Base
   private
 
   def title_does_not_have_prohibited_word
+    return if self.title.blank?
     matched_words = []
 
     prohibited_words = %w(post title 제목 포스트)
@@ -32,16 +33,17 @@ class Post < ActiveRecord::Base
     end
   end
 
-  def content_should_have_specific_words
+  def content_has_specific_words
+    return if self.content.blank?
     words = %w(어제 오늘 내일)
-    matched_words = words
+    matched_words = words.clone
     words.each do |word|
       if self.content.match(/#{word}/i)
         matched_words.delete(word)
       end
     end
     if matched_words.present?
-      errors.add(:title, "내용에 빠진 단어가 있습니다 : #{matched_words.join(', ')}")
+      errors.add(:content, "내용에 빠진 단어가 있습니다 : #{matched_words.join(', ')}")
     end
   end
 end
