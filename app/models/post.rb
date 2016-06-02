@@ -33,7 +33,7 @@ class Post < ActiveRecord::Base
     end
   end
 
-  def content_should_have_specific_words
+  def content_has_specific_words
     return if self.content.blank?
     words = %w(어제 오늘 내일)
     matched_words = words.clone
