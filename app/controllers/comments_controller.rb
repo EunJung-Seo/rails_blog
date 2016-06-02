@@ -1,17 +1,24 @@
 # -*- encoding : utf-8 -*-
 class CommentsController < ApplicationController
   before_filter :find_post_by_id
-  before_filter :check_comment_validation, only: [:create]
   before_filter :find_comment_by_id, only: [:destroy]
 
   def create
-    @comment = @post.comments.create(params[:comment])
-    redirect_to post_path(@post)
+    @comment = Comment.new(params[:comment])
+    @comment.post = @post
+    if @comment.save
+      redirect_to post_path(@post)
+    else
+      redirect_to post_path(@post), alert: '유효하지 않은 코멘트입니다.'
+    end
   end
 
   def destroy
-    @comment.destroy
-    redirect_to post_path(@post)
+    if @comment.destroy
+      redirect_to post_path(@post)
+    else
+      redirect_to post_path(@post), alert: 'expectation failed'
+    end
   end
 
   # ===============================================================
@@ -33,12 +40,6 @@ class CommentsController < ApplicationController
     @comment = @post.comments.find_by_id(params[:id])
     if @comment.blank?
       redirect_to post_path(@post), alert: '존재하지 않는 코멘트입니다.'
-    end
-  end
-
-  def check_comment_validation
-    unless Comment.new(params[:comment]).valid?
-      redirect_to post_path(@post), alert: '유효하지 않은 코멘트입니다.'
     end
   end
 end
