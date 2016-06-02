@@ -102,15 +102,31 @@ describe CommentsController do
 
     context 'when post id is valid' do
       context 'with valid comment id' do
-        subject { delete :destroy, post_id: test_post.id, id: test_comment.id }
+        context 'when destroy successed' do
+          subject { delete :destroy, post_id: test_post.id, id: test_comment.id }
 
-        include_examples 'return status code', 302
-        it 'redirects to post_path' do
-          subject
-          expect(response).to redirect_to(post_path(test_post))
+          include_examples 'return status code', 302
+          it 'redirects to post_path' do
+            subject
+            expect(response).to redirect_to(post_path(test_post))
+          end
+          it 'delete a comment' do
+            expect { subject }.to change(Comment, :count).by(-1)
+          end
         end
-        it 'delete a comment' do
-          expect { subject }.to change(Comment, :count).by(-1)
+
+        context 'when destroy failed' do
+          before(:each) do
+            allow(Post).to receive(:find_by_id).and_return(test_post)
+            allow(test_post).to receive_message_chain(:comments, :find_by_id, :destroy).and_return(false)
+          end
+          subject { delete :destroy, post_id: test_post.id, id: test_comment.id }
+
+          include_examples 'return status code', 302
+          it 'redirects to the post' do
+            subject
+            expect(response).to redirect_to(post_path(test_post))
+          end
         end
       end
 
