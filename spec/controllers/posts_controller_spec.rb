@@ -415,13 +415,27 @@ describe PostsController do
     let(:post) { create(:post) }
     describe 'JSON' do
       context 'with valid id' do
-        subject { delete :destroy, id: post.id, format: :json }
+        context 'when destroy successed' do
+          subject { delete :destroy, id: post.id, format: :json }
 
-        include_examples 'return status code', 204
+          include_examples 'return status code', 204
+          it 'removes the post' do
+            subject
+            expect(Post.find_by_id(post.id)).to eq nil
+          end
+        end
+        context 'when destroy failed' do
+          before(:each) do
+            allow(Post).to receive(:find_by_id).and_return(post)
+            allow(post).to receive(:destroy).and_return(false)
+          end
+          subject { delete :destroy, id: post.id, format: :json}
 
-        it 'removes the post' do
-          subject
-          expect(Post.find_by_id(post.id)).to eq nil
+          include_examples 'return status code', 417
+          it 'returns error message' do
+            subject
+            expect(JSON.parse(response.body)['error']).to eq 'Failed to destroy'
+          end
         end
       end
 
@@ -439,18 +453,33 @@ describe PostsController do
 
     describe 'html' do
       context 'with valid id' do
-        subject { delete :destroy, id: post.id }
+        context 'when destroy successed' do
+          subject { delete :destroy, id: post.id }
 
-        include_examples 'return status code', 302
+          include_examples 'return status code', 302
+          it 'redirects to index' do
+            subject
+            expect(response).to redirect_to(posts_url)
+          end
 
-        it 'redirects to index' do
-          subject
-          expect(response).to redirect_to(posts_url)
+          it 'removes the post' do
+            subject
+            expect(Post.find_by_id(post.id)).to eq nil
+          end
         end
 
-        it 'removes the post' do
-          subject
-          expect(Post.find_by_id(post.id)).to eq nil
+        context 'when destroy failed' do
+          before(:each) do
+            allow(Post).to receive(:find_by_id).and_return(post)
+            allow(post).to receive(:destroy).and_return(false)
+          end
+          subject { delete :destroy, id: post.id }
+
+          include_examples 'return status code', 302
+          it 'redirects to index' do
+            subject
+            expect(response).to redirect_to(posts_url)
+          end
         end
       end
 
