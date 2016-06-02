@@ -8,13 +8,6 @@ describe PostsController do
   #
   # ===============================================================
 
-  shared_examples 'rendering template' do |action|
-    it "reders #{action} template" do
-      subject
-      expect(response).to render_template(action)
-    end
-  end
-
   shared_examples 'return status code' do |code|
     it "returns status code #{code}" do
       subject
@@ -22,17 +15,17 @@ describe PostsController do
     end
   end
 
-  shared_examples 'return error message' do |message|
+  shared_examples 'return error message' do |attribute, message|
     it "returns a error message" do
       subject
-      expect(JSON.parse(response.body)['error']).to eq message
+      expect(JSON.parse(response.body)[attribute][0]).to eq message
     end
   end
 
-  shared_examples 'return alert message' do |message|
-    it "returns a error message" do
+  shared_examples 'render template' do |action|
+    it "renders #{action} template" do
       subject
-      expect(flash.alert).to eq message
+      expect(response).to render_template(action)
     end
   end
 
@@ -102,7 +95,7 @@ describe PostsController do
           expect(assigns(:post)).to eq post
         end
 
-        include_examples 'rendering template', 'show'
+        include_examples 'render template', 'show'
       end
 
       context 'with invalid id' do
@@ -134,49 +127,49 @@ describe PostsController do
         subject { post :create, post: attributes_for(:invalid_post_name), format: :json }
 
         include_examples 'return status code', 422
-        include_examples 'return error message', 'Invalid Post'
+        include_examples 'return error message', 'name', "can't be blank"
       end
 
       context 'when title is nil' do
         subject { post :create, post: attributes_for(:invalid_post_title), format: :json }
 
         include_examples 'return status code', 422
-        include_examples 'return error message', 'Invalid Post'
+        include_examples 'return error message', 'title', "can't be blank"
       end
 
       context 'when title is shorter than 5 characters' do
         subject { post :create, post: attributes_for(:short_post_title), format: :json }
 
         include_examples 'return status code', 422
-        include_examples 'return error message', 'Invalid Post'
+        include_examples 'return error message', 'title', 'is too short (minimum is 5 characters)'
       end
 
       context 'when title is longer than 10 characters' do
         subject { post :create, post: attributes_for(:long_post_title), format: :json }
 
         include_examples 'return status code', 422
-        include_examples 'return error message', 'Invalid Post'
+        include_examples 'return error message', 'title', 'is too long (maximum is 10 characters)'
       end
 
       context 'when title has prohibited words' do
         subject { post :create, post: attributes_for(:wrong_title), format: :json }
 
         include_examples 'return status code', 422
-        include_examples 'return error message', 'Invalid Post'
+        include_examples 'return error message', 'title', "제목에 들어갈 수 없는 단어가 있습니다 : title"
       end
 
       context "when content is nil" do
         subject { post :create, post: attributes_for(:invalid_content), format: :json }
 
         include_examples 'return status code', 422
-        include_examples 'return error message', 'Invalid Post'
+        include_examples 'return error message', 'content', "can't be blank"
       end
 
       context "when content does not contain expected words" do
         subject { post :create, post: attributes_for(:wrong_content), format: :json }
 
         include_examples 'return status code', 422
-        include_examples 'return error message', 'Invalid Post'
+        include_examples 'return error message', 'content', "내용에 빠진 단어가 있습니다 : 어제, 오늘, 내일"
       end
     end
 
@@ -195,50 +188,50 @@ describe PostsController do
       context 'when name is nil' do
         subject { post :create, post: attributes_for(:invalid_post_name) }
 
-        include_examples 'return status code', 302
-        include_examples 'return alert message', '유효하지 않은 포스트입니다.'
+        include_examples 'return status code', 200
+        include_examples 'render template', 'new'
       end
 
       context 'when title is nil' do
         subject { post :create, post: attributes_for(:invalid_post_title) }
 
-        include_examples 'return status code', 302
-        include_examples 'return alert message', '유효하지 않은 포스트입니다.'
+        include_examples 'return status code', 200
+        include_examples 'render template', 'new'
       end
 
       context 'when title is shorter than 5 characters' do
         subject { post :create, post: attributes_for(:short_post_title) }
 
-        include_examples 'return status code', 302
-        include_examples 'return alert message', '유효하지 않은 포스트입니다.'
+        include_examples 'return status code', 200
+        include_examples 'render template', 'new'
       end
 
       context 'when title is longer than 10 characters' do
         subject { post :create, post: attributes_for(:long_post_title) }
 
-        include_examples 'return status code', 302
-        include_examples 'return alert message', '유효하지 않은 포스트입니다.'
+        include_examples 'return status code', 200
+        include_examples 'render template', 'new'
       end
 
       context 'when title has permitted words' do
         subject { post :create, post: attributes_for(:wrong_title) }
 
-        include_examples 'return status code', 302
-        include_examples 'return alert message', '유효하지 않은 포스트입니다.'
+        include_examples 'return status code', 200
+        include_examples 'render template', 'new'
       end
 
       context "when content is nil" do
         subject { post :create, post: attributes_for(:invalid_content) }
 
-        include_examples 'return status code', 302
-        include_examples 'return alert message', '유효하지 않은 포스트입니다.'
+        include_examples 'return status code', 200
+        include_examples 'render template', 'new'
       end
 
       context "when content does not contain expected words" do
         subject { post :create, post: attributes_for(:wrong_content) }
 
-        include_examples 'return status code', 302
-        include_examples 'return alert message', '유효하지 않은 포스트입니다.'
+        include_examples 'return status code', 200
+        include_examples 'render template', 'new'
       end
     end
   end
@@ -271,49 +264,49 @@ describe PostsController do
         subject { put :update, id: post.id, post: { 'name' => nil }, format: :json }
 
         include_examples 'return status code', 422
-        include_examples 'return error message', 'Invalid Post'
+        include_examples 'return error message', 'name', "can't be blank"
       end
 
       context 'when title is nil' do
         subject { put :update, id: post.id, post: { 'title' => nil }, format: :json }
 
         include_examples 'return status code', 422
-        include_examples 'return error message', 'Invalid Post'
+        include_examples 'return error message', 'title', "can't be blank"
       end
 
       context 'when title is shorter than 5 characters' do
         subject { put :update, id: post.id, post: { 'title' => 'a' }, format: :json }
 
         include_examples 'return status code', 422
-        include_examples 'return error message', 'Invalid Post'
+        include_examples 'return error message', 'title', 'is too short (minimum is 5 characters)'
       end
 
       context 'when title is longer than 10 characters' do
         subject { put :update, id: post.id, post: { 'title' => 'longer than 10 characters' }, format: :json }
 
         include_examples 'return status code', 422
-        include_examples 'return error message', 'Invalid Post'
+        include_examples 'return error message', 'title', 'is too long (maximum is 10 characters)'
       end
 
       context 'when title has permitted words' do
-        subject { put :update, id: post.id, post: { 'title' => 'title 제목' }, format: :json }
+        subject { put :update, id: post.id, post: { 'title' => 'title' }, format: :json }
 
         include_examples 'return status code', 422
-        include_examples 'return error message', 'Invalid Post'
+        include_examples 'return error message', 'title', "제목에 들어갈 수 없는 단어가 있습니다 : title"
       end
 
       context "when content is nil" do
         subject { put :update, id: post.id, post: { 'content' => nil }, format: :json }
 
         include_examples 'return status code', 422
-        include_examples 'return error message', 'Invalid Post'
+        include_examples 'return error message', 'content', "can't be blank"
       end
 
       context "when content does not contain expected words" do
         subject { put :update, id: post.id, post: { 'content' => 'content' }, format: :json }
 
         include_examples 'return status code', 422
-        include_examples 'return error message', 'Invalid Post'
+        include_examples 'return error message', 'content', "내용에 빠진 단어가 있습니다 : 어제, 오늘, 내일"
       end
 
       context 'with invalid id' do
@@ -325,7 +318,10 @@ describe PostsController do
         end
 
         include_examples 'return status code', 422
-        include_examples 'return error message', 'Post not found'
+        it 'returns a error message' do
+          subject
+          expect(JSON.parse(response.body)['error']).to eq 'Post not found'
+        end
       end
     end
 
@@ -355,78 +351,50 @@ describe PostsController do
       context 'when name is nil' do
         subject { put :update, id: post.id, post: { 'name' => nil } }
 
-        include_examples 'return status code', 302
-
-        it 'redirects to index' do
-          subject
-          expect(response).to redirect_to(posts_url)
-        end
+        include_examples 'return status code', 200
+        include_examples 'render template', 'edit'
       end
 
       context 'when title is nil' do
         subject { put :update, id: post.id, post: { 'title' => nil } }
 
-        include_examples 'return status code', 302
-
-        it 'redirects to index' do
-          subject
-          expect(response).to redirect_to(posts_url)
-        end
+        include_examples 'return status code', 200
+        include_examples 'render template', 'edit'
       end
 
       context 'when title is shorter than 5 characters' do
         subject { put :update, id: post.id, post: { 'title' => 'a' } }
 
-        include_examples 'return status code', 302
-
-        it 'redirects to index' do
-          subject
-          expect(response).to redirect_to(posts_url)
-        end
+        include_examples 'return status code', 200
+        include_examples 'render template', 'edit'
       end
 
       context 'when title is longer than 10 characters' do
         subject { put :update, id: post.id, post: { 'title' => 'longer than 10 characters' } }
 
-        include_examples 'return status code', 302
-
-        it 'redirects to index' do
-          subject
-          expect(response).to redirect_to(posts_url)
-        end
+        include_examples 'return status code', 200
+        include_examples 'render template', 'edit'
       end
 
       context 'when title has permitted words' do
         subject { put :update, id: post.id, post: { 'title' => 'title 제목' } }
 
-        include_examples 'return status code', 302
-
-        it 'redirects to index' do
-          subject
-          expect(response).to redirect_to(posts_url)
-        end
+        include_examples 'return status code', 200
+        include_examples 'render template', 'edit'
       end
 
       context "when content is nil" do
         subject { put :update, id: post.id, post: { 'content' => nil } }
 
-        include_examples 'return status code', 302
-
-        it 'redirects to index' do
-          subject
-          expect(response).to redirect_to(posts_url)
-        end
+        include_examples 'return status code', 200
+        include_examples 'render template', 'edit'
       end
 
       context "when content does not contain expected words" do
         subject { put :update, id: post.id, post: { 'content' => 'content' } }
 
-        include_examples 'return status code', 302
-
-        it 'redirects to index' do
-          subject
-          expect(response).to redirect_to(posts_url)
-        end
+        include_examples 'return status code', 200
+        include_examples 'render template', 'edit'
       end
 
       context 'with invalid id' do
