@@ -118,7 +118,8 @@ describe CommentsController do
         context 'when destroy failed' do
           before(:each) do
             allow(Post).to receive(:find_by_id).and_return(test_post)
-            allow(test_post).to receive_message_chain(:comments, :find_by_id, :destroy).and_return(false)
+            allow(test_post).to receive_message_chain(
+              :comments, :find_by_id, :destroy).and_return(false)
           end
           subject { delete :destroy, post_id: test_post.id, id: test_comment.id }
 
